@@ -17,6 +17,8 @@ namespace autoDabalash
         public Form1()
         {
             InitializeComponent();
+            this.Text = "Software de Automatizacion";
+            this.Font = SystemFonts.DefaultFont;
             dataGridView1.Columns.Add("Nombre", "Nombre");
             dataGridView1.Columns.Add("Cedula", "Cedula");
             dataGridView1.Columns.Add("Celular", "Celular");
@@ -24,7 +26,10 @@ namespace autoDabalash
             dataGridView1.Columns.Add("Barrio", "Barrio");
             dataGridView1.Columns.Add("Ciudad", "Ciudad");
             dataGridView1.Columns.Add("Correo", "Correo");
+            dataGridView1.SelectAll();
 
+            DataObject dataObj = dataGridView1.GetClipboardContent();
+            Clipboard.SetDataObject(dataObj, true);
         }
 
         static bool ContieneSoloNumeros(string cadena)
@@ -70,6 +75,7 @@ namespace autoDabalash
             List<string> ciudades = new List<string>
             {
                 "Bogotá",
+                "cota",
                 "jamundi",
                 "Medellín",
                 "Cali",
@@ -144,6 +150,7 @@ namespace autoDabalash
                 "Norte de Santander",
                 "Putumayo",
                 "Quindío",
+                "distrito capital",
                 "Risaralda",
                 "San Andrés y Providencia",
                 "Santander",
@@ -154,7 +161,7 @@ namespace autoDabalash
                 "Vichada"
             };
             string[] lineas = richTextBox1.Lines;
-            string nombre = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(lineas[0].ToLower()), correo = "", cedula = "", celular = "", ciudad = "", direccion = "", barrio = "";
+            string nombre = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(lineas[0].ToLower()), correo = "", cedula = "", celular = "", ciudad = "", direccion = "", barrio = "", depart="";
             if (lineas.Length > 0)
             {
                 string[] nuevasLineas = new string[lineas.Length - 1];
@@ -164,10 +171,8 @@ namespace autoDabalash
 
             foreach (string line in lineas)
             {
-                line.Trim().ToLower();
-                Console.Write(line);
-
-                if ((line.Length == 10 && line[0] == '1') || (ContieneSoloNumeros(line) && line.Length != 10))
+                 
+                if ((line.Length == 10 && line[0] == '1') || ((ContieneSoloNumeros(line) && line.Length != 10) && (!string.IsNullOrEmpty(line))))
                 {
                     cedula = line;
                 }
@@ -178,6 +183,10 @@ namespace autoDabalash
                 else if (line.Length == 10 && line[0] == '3')
                 {
                     celular = line;
+                }
+                else if (line.Contains("+57"))
+                {
+                    celular = line.Substring(3);
                 }
                 else if (buscarCiudad(line, ciudades))
                 {
@@ -198,7 +207,15 @@ namespace autoDabalash
                     {
                         barrio = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(line.ToLower());
                     }
+                    else if (buscarCiudad(line, departamentos))
+                    {
+                        depart = line;
+                    }
                 }
+            }
+            if (string.IsNullOrEmpty(barrio))
+            {
+                barrio = depart;
             }
 
             DataGridViewRow row = new DataGridViewRow();
@@ -265,7 +282,7 @@ namespace autoDabalash
                 }
             }
 
-            richTextBox1.Lines = lineas;
+            richTextBox1.Lines = lineas.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
 
         }
     }
